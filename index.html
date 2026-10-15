@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pollen Palette — Pollinations image playground</title>
+    <meta
+      name="description"
+      content="Turn a short prompt into an image with Pollinations. You connect your own Pollinations account, so you spend your own Pollen."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f14;
+        --panel: #121820;
+        --panel-2: #0e141b;
+        --line: #1e2936;
+        --text: #e6edf3;
+        --muted: #8b9bb0;
+        --accent: #6ee7b7;
+        --accent-2: #38bdf8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(1200px 600px at 80% -10%, #143244 0%, var(--bg) 55%);
+        color: var(--text);
+        font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .wrap { max-width: 1060px; margin: 0 auto; padding: 28px 20px 64px; }
+      header { display: flex; align-items: center; gap: 12px; }
+      .logo {
+        width: 40px; height: 40px; border-radius: 12px;
+        background: conic-gradient(from 210deg, var(--accent), var(--accent-2), #a78bfa, var(--accent));
+      }
+      h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+      .sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+      .panel {
+        margin-top: 22px; background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+      }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; }
+      textarea, select {
+        width: 100%; background: #0a1016; color: var(--text);
+        border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font: inherit;
+      }
+      textarea { min-height: 84px; resize: vertical; }
+      label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 6px; }
+      .grid { display: grid; grid-template-columns: 1fr 220px; gap: 14px; }
+      .actions { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+      button {
+        font: inherit; font-weight: 600; cursor: pointer; border-radius: 12px;
+        border: 1px solid transparent; padding: 11px 18px;
+      }
+      .primary { background: linear-gradient(180deg, var(--accent), #34d399); color: #05221a; }
+      .primary:disabled { opacity: 0.5; cursor: not-allowed; }
+      .ghost { background: transparent; color: var(--text); border-color: var(--line); }
+      .status { color: var(--muted); font-size: 13px; }
+      .stage {
+        margin-top: 18px; border: 1px dashed var(--line); border-radius: 16px;
+        min-height: 420px; display: grid; place-items: center; overflow: hidden; background: #0a1016;
+      }
+      .stage img { width: 100%; height: auto; display: block; }
+      .placeholder { color: var(--muted); text-align: center; padding: 30px; }
+      .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .chip {
+        background: #0a1016; border: 1px solid var(--line); color: var(--muted);
+        border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+      }
+      .chip:hover { color: var(--text); border-color: #2b3a4d; }
+      footer {
+        margin-top: 26px; display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 13px;
+      }
+      footer img { height: 34px; }
+      a { color: var(--accent-2); }
+      .key-badge { font-size: 12px; color: var(--muted); }
+      .key-badge b { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Pollen Palette</h1>
+          <p class="sub">Describe a scene — get an image. Powered by Pollinations, paid with your own Pollen.</p>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div class="grid">
+          <div>
+            <label for="prompt">Prompt</label>
+            <textarea id="prompt" placeholder="A lighthouse on a stormy cliff, cinematic light, ultra detailed">A lighthouse on a stormy cliff at dusk, cinematic lighting, ultra detailed</textarea>
+            <div class="chips" id="chips"></div>
+          </div>
+          <div>
+            <label for="model">Image model</label>
+            <select id="model">
+              <option value="black-forest-labs/flux.1-schnell">Flux Schnell (fast)</option>
+              <option value="flux">Flux (default)</option>
+              <option value="turbo">Turbo</option>
+              <option value="gptimage">GPT Image</option>
+            </select>
+            <label for="size" style="margin-top:12px">Size</label>
+            <select id="size">
+              <option value="1024x1024">Square 1024</option>
+              <option value="1280x720">Landscape 16:9</option>
+              <option value="768x1024">Portrait</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="connect" class="ghost">Connect Pollinations</button>
+          <button id="generate" class="primary" disabled>Generate image</button>
+          <span class="status" id="status">Not connected — connect your Pollinations account to start.</span>
+        </div>
+      </section>
+
+      <div class="stage" id="stage">
+        <div class="placeholder" id="placeholder">
+          Your generated image will appear here.
+        </div>
+      </div>
+
+      <footer>
+        <span class="key-badge" id="keybadge"></span>
+        <a href="https://pollinations.ai/?ref=badge" target="_blank" rel="noopener">
+          <img
+            src="https://raw.githubusercontent.com/pollinations/pollinations/main/packages/ui/src/brand/badge-made-with.svg"
+            alt="Made with pollinations.ai"
+          />
+        </a>
+      </footer>
+    </div>
+
+    <script>
+      const CLIENT_ID = "PK_CLIENT_ID";
+      const API = "https://gen.pollinations.ai";
+      const AUTH = "https://enter.pollinations.ai/authorize";
+
+      const $ = (id) => document.getElementById(id);
+      const promptEl = $("prompt");
+      const modelEl = $("model");
+      const sizeEl = $("size");
+      const generateBtn = $("generate");
+      const connectBtn = $("connect");
+      const statusEl = $("status");
+      const stageEl = $("stage");
+      const keyBadge = $("keybadge");
+
+      let apiKey = null;
+
+      const IDEAS = [
+        "a glass city under aurora, long exposure",
+        "red panda astronaut drinking boba, studio light",
+        "isometric cozy bookshop, warm lamps",
+        "oil painting of a whale above clouds",
+        "neon street market in the rain, cyberpunk",
+      ];
+      const chips = $("chips");
+      for (const idea of IDEAS) {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.textContent = idea;
+        b.onclick = () => { promptEl.value = idea; };
+        chips.appendChild(b);
+      }
+
+      const setStatus = (text, tone) => {
+        statusEl.textContent = text;
+        statusEl.style.color = tone === "ok" ? "var(--accent)" : tone === "err" ? "#fca5a5" : "var(--muted)";
+      };
+
+      const enableWhenReady = () => {
+        generateBtn.disabled = !apiKey;
+      };
+
+      // Legacy BYOP fragment flow: the user-authorized key comes back in the URL hash.
+      const readFragmentKey = () => {
+        const hash = new URLSearchParams(location.hash.slice(1));
+        const key = hash.get("api_key");
+        if (key) {
+          history.replaceState(null, "", location.pathname + location.search);
+          return key;
+        }
+        if (hash.get("error")) {
+          setStatus("Authorization cancelled.", "err");
+        }
+        return null;
+      };
+
+      const connect = () => {
+        const params = new URLSearchParams({
+          client_id: CLIENT_ID,
+          redirect_uri: location.origin + location.pathname,
+          models: "image",
+          budget: "2",
+          expiry: "1",
+        });
+        location.href = `${AUTH}?${params.toString()}`;
+      };
+
+      const generate = async () => {
+        const prompt = promptEl.value.trim();
+        if (!prompt) { setStatus("Write a prompt first.", "err"); return; }
+        const [w, h] = sizeEl.value.split("x");
+        const url = `${API}/image/${encodeURIComponent(prompt)}?model=${encodeURIComponent(modelEl.value)}&width=${w}&height=${h}&nologo=true&seed=${Math.floor(Math.random() * 1e6)}`;
+        generateBtn.disabled = true;
+        setStatus("Generating on Pollinations…");
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const blob = await res.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          stageEl.innerHTML = "";
+          const img = new Image();
+          img.src = objectUrl;
+          img.alt = prompt;
+          stageEl.appendChild(img);
+          setStatus("Done — image generated with Pollinations.", "ok");
+        } catch (err) {
+          setStatus(`Generation failed: ${err.message}`, "err");
+        } finally {
+          generateBtn.disabled = !apiKey;
+        }
+      };
+
+      const init = () => {
+        const fromHash = readFragmentKey();
+        if (fromHash) {
+          apiKey = fromHash;
+          sessionStorage.setItem("pp_key", fromHash);
+          setStatus("Connected — ready to generate.", "ok");
+        } else {
+          const stored = sessionStorage.getItem("pp_key");
+          if (stored) { apiKey = stored; setStatus("Connected — ready to generate.", "ok"); }
+        }
+        if (apiKey) {
+          keyBadge.innerHTML = "Spending your own <b>Pollen</b> via your Pollinations account.";
+          connectBtn.textContent = "Reconnect";
+        }
+        enableWhenReady();
+      };
+
+      connectBtn.onclick = connect;
+      generateBtn.onclick = generate;
+      init();
+    </script>
+  </body>
+</html>
